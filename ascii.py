@@ -1,61 +1,29 @@
 #! /usr/bin/python3
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import sys
 import re
 from colorama import Fore, Back, Style 
+import time
 
 class Generator:
-    def __init__(self,imgName,outw=None,outh=None):
-        if outh is not None:
-            self.outw = outw
-        else:
-            self.outw = 128
-        if outw is not None:
-            self.outh = outh
-        else:
-            self.outh = 128
+    def removeTransparency(img):
+        canvas = Image.new('RGBA',img.size,(255,255,255,255))
+        img = img.convert('RGBA')
+        canvas.paste(img,mask=img)
+        img = canvas
+        return img
 
-        # matches file extension
-        match = re.search(r"\.([^\.]*)$",imgName)
-        try:
-            extension = match.group(1)
-            # if we matched a lone dot
-            if match.group(1) == '':
-                # remove it
-                imgName = imgName[:-1]
-                raise
-        except:
-            extension = 'png'
-            imgName += '.png'
+    def convertToGrayscale(img):
+        img = img.convert('L')
+        return img
 
-        # read image or print an error
-        try:
-            self.img = Image.open(imgName)
-            self.imgName = imgName.rstrip(f'.{extension}')
-            self.extension = f'{extension}'
-        except: error('Could not load image.')
+    def resize(img,outw,outh):
+        img.thumbnail((round(outw/2),outh))
+        w = round(img.width*2)
+        h = round(img.height)
+        img = img.resize((w,h))
+        return img
 
-        self.removeTransparency()
-        self.convertToGrayscale()
-        # resize the image to compensate for ascii being taller than it is wide
-        self.resize()
-
-    def removeTransparency(self):
-        canvas = Image.new('RGBA',self.img.size,(255,255,255,255))
-        self.img = self.img.convert('RGBA')
-        canvas.paste(self.img,mask=self.img)
-        self.img = canvas
-
-    def convertToGrayscale(self):
-        self.img = self.img.convert('L')
-
-    def resize(self):
-        self.img.thumbnail((round(self.outw/2),self.outh))
-        w = round(self.img.width*2)
-        h = round(self.img.height)
-        self.img = self.img.resize((w,h))
-
-    # static member function to convert a value to an ascii character
     def toChar(value):
         if value > 255: value = 255
         if value < 0: value = 0
@@ -64,44 +32,178 @@ class Generator:
         key = round(value * (len(chars)-1) / 255)
         return chars[key]
 
-    def generate(self):
+    def openInput(name):
+        # matches f extension
+        match = re.search(r"\.([^\.]*)$",name)
+        try:
+            extension = match.group(1)
+            # if we matched a lone dot
+            if match.group(1) == '':
+                # remove it
+                name = name[:-1]
+                raise
+        except:
+            extension = 'png'
+            name += '.png'
+
+        # read image or print an error
+        try:
+            f = Image.open(name)
+            name = name.rstrip(f'.{extension}')
+            extension = f'{extension}'
+        except: error('Could not load file.')
+
+        return f
+
+    def generateASCII(imgName,outw=None,outh=None):
+        info('Generating ASCII text...')
+        if outw is None:
+            outw = 128
+        if outh is None:
+            outh = outw
+
+        info('Opening sourcefile...')
+        img = Generator.openInput(imgName)
+
+        info('Converting image to grayscale...')
+        img = Generator.removeTransparency(img)
+        img = Generator.convertToGrayscale(img)
+        # resize the image to compensate for ascii being taller than it is wide
+        info('Resizing image...')
+        img = Generator.resize(img,outw,outh)
         # flattened array of grayscale values for each pixel
-        data = self.img.getdata()
-        w = self.img.width
-        h = self.img.height
+        data = img.getdata()
+        w = img.width
+        h = img.height
         # iterate through it and generate ascii
+        info('Assigning ASCII to pixels...')
         s = ''
         for i,p in enumerate(data):
             s += Generator.toChar(p)
             if (i+1) % w == 0: s += '\n\r'
         return s
 
+    def generateASCIIImage(imgName,outw=None,outh=None,font=None):
+        info('Generating ASCII image...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
+
+        # load the font
+        if font is None:
+            font = ImageFont.load_default()
+
+        # get ascii for the frame
+        s = Generator.generateASCII(imgName,outw,outh)
+        s = s.replace('\r','')
+        lines = s.splitlines()
+
+        # figure out width and height of the image
+        info('Gathering meta-data...')
+        width = 0
+        height = 0
+        for line in lines:
+            w,h = font.getsize(line)
+            if w > width: width = w
+            height += h
+
+        # draw the output
+        info('Drawing image...')
+        output = Image.new('RGB',(width,height), color=(255,255,255))
+        d = ImageDraw.Draw(output)
+        texty = 0
+        for line in lines:
+            w,h = font.getsize(line)
+            d.text((0,texty), line, fill=(0,0,0))
+            texty += h
+
+        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
+        filename = filename + ".png"
+        info(f'Saved image as {filename}')
+        output.save(filename)
+
+    def generateASCIIGIF(gifName,outw=None,outh=None,font=None):
+        info('Generating ASCII GIF (this may take some time)...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
+
+        # load the font
+        if font is None:
+            font = ImageFont.load_default()
+
+        # get ascii for the frame
+        s = Generator.generateASCII(gifName,outw,outh)
+        s = s.replace('\r','')
+        lines = s.splitlines()
+
+        # figure out width and height of the image
+        width = 0
+        height = 0
+        for line in lines:
+            w,h = font.getsize(line)
+            if w > width: width = w
+            height += h
+
+        # draw the frame
+        frame = Image.new('RGB',(width,height), color=(255,255,255))
+        d = ImageDraw.Draw(frame)
+        texty = 0
+        for line in lines:
+            w,h = font.getsize(line)
+            d.text((0,texty), line, fill=(0,0,0))
+            texty += h
+        frame.save('frame.png')
+
 def displayUsage():
-    print(f"{Fore.RED}Usage: asciify <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
-    print(          f"       If you do not supply an extension, {Fore.RED}.png{Style.RESET_ALL} will be assumed.", file=sys.stderr)
+    print(f"{Fore.RED}Usage: asciify <COMMAND> <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
+    print(          f"       If you do not supply an extension for <image_name>, {Fore.RED}.png{Style.RESET_ALL} will be assumed.", file=sys.stderr)
+    print()
+    print(f"{Fore.RED}Commands:{Style.RESET_ALL}")
+    print(f"{Fore.RED}         ascii, text, txt:{Style.RESET_ALL} convert an image to ASCII and output to stdout")
+    print(f"{Fore.RED}               image, img:{Style.RESET_ALL} convert an image to ASCII and output that ASCII as a PNG")
+    print(f"{Fore.RED}                      gif:{Style.RESET_ALL} convert a GIF to ASCII and output that ASCII as a GIF")
     exit(-1)
 
 def error(msg):
     print(f"{Fore.RED}ERROR:{Style.RESET_ALL} {msg}", file=sys.stderr)
     exit(-1)
 
+def info(msg):
+    print(f"{Fore.GREEN}INFO:{Style.RESET_ALL} {msg}", file=sys.stderr)
+
 def parseArgs():
-    try: imgName = sys.argv[1].strip()
+    try: command = sys.argv[1].strip()
     except:
         displayUsage()
-    try: outw = int(sys.argv[2].strip())
+    try: imgName = sys.argv[2].strip()
     except:
-        outw = 128
-    try: outh = int(sys.argv[3].strip())
+        displayUsage()
+    try: outw = int(sys.argv[3].strip())
     except:
-        outh = 128
-    return imgName, outw, outh
+        outw = None
+    try: outh = int(sys.argv[4].strip())
+    except:
+        outh = None
+    return command, imgName, outw, outh
 
 def main():
-    imgName,outw,outh = parseArgs()
+    command,imgName,outw,outh = parseArgs()
 
-    g = Generator(imgName,outw,outh)
-    print(g.generate())
+    if command.lower() in ['image','img']:
+        Generator.generateASCIIImage(imgName,outw,outh)
+        info('Done.')
+    elif command.lower() in ['ascii','text','txt']:
+        print(Generator.generateASCII(imgName,outw,outh))
+        info('Done.')
+    elif command.lower() in ['gif']:
+        error('Feature not yet implemented!!')
+        #Generator.generateASCIIGIF(imgName,outw,outh)
+        #info('Done.')
+    else:
+        displayUsage()
 
     exit(1)
 
