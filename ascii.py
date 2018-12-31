@@ -90,6 +90,9 @@ class Generator:
         if outh is None:
             outh = outw
 
+        if outw >= 5000 or outh >= 5000:
+            warn('You specified a pretty large maximum width or height. The resulting PNG will be quite large. If this was a mistake, press <CTRL-C> to cancel.')
+
         # load the font
         if font is None:
             font = ImageFont.load_default()
@@ -120,7 +123,7 @@ class Generator:
 
         filename = time.strftime("%m-%d-%Y_%H:%M:%S")
         filename = filename + ".png"
-        info(f'Saved image as {filename}')
+        info(f'Saving image as {filename}')
         output.save(filename)
 
     def generateASCIIGIF(gifName,outw=None,outh=None,font=None):
@@ -173,6 +176,9 @@ def error(msg):
 
 def info(msg):
     print(f"{Fore.GREEN}INFO:{Style.RESET_ALL} {msg}", file=sys.stderr)
+
+def warn(msg):
+    print(f"{Fore.RED}WARNING:{Style.RESET_ALL} {msg}", file=sys.stderr)
 
 def parseArgs():
     try: command = sys.argv[1].strip()
