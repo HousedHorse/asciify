@@ -4,6 +4,7 @@ import sys
 import re
 from colorama import Fore, Back, Style 
 import time
+from pathlib import Path
 
 class Generator:
     def removeTransparency(img):
@@ -28,7 +29,7 @@ class Generator:
         if value > 255: value = 255
         if value < 0: value = 0
         # list is from light to dark but must be read dark to light
-        chars = [x for x in reversed([' ','.',',',':',';','*','I','L','O','Q','B','M','#','@'])]
+        chars = [x for x in reversed([' ',' ','.',',',':',';','*','I','L','O','Q','B','M','#','#'])]
         key = round(value * (len(chars)-1) / 255)
         return chars[key]
 
@@ -79,6 +80,7 @@ class Generator:
         info('Assigning ASCII to pixels...')
         s = ''
         for i,p in enumerate(data):
+            load(i,len(data))
             s += Generator.toChar(p)
             if (i+1) % w == 0: s += '\n'
         return s
@@ -95,7 +97,8 @@ class Generator:
 
         # load the font
         if font is None:
-            font = ImageFont.load_default()
+            #font = ImageFont.load_default()
+            font = ImageFont.truetype(font=f'/usr/share/fonts/inconsolata.otf')
 
         # get ascii for the frame
         s = Generator.generateASCII(imgName,outw,outh)
@@ -103,12 +106,8 @@ class Generator:
 
         # figure out width and height of the image
         info('Gathering meta-data...')
-        width = 0
-        height = 0
-        for line in lines:
-            w,h = font.getsize(line)
-            if w > width: width = w
-            height += h
+        width,lineheight = font.getsize(lines[0])
+        height = lineheight * len(lines)
 
         # draw the output
         info('Drawing image...')
@@ -116,9 +115,9 @@ class Generator:
         d = ImageDraw.Draw(output)
         texty = 0
         for line in lines:
-            w,h = font.getsize(line)
-            d.text((0,texty), line, fill=(0,0,0))
-            texty += h
+            load(texty,height)
+            d.text((0,texty), line, font=font, fill=(0,0,0))
+            texty += lineheight
 
         filename = time.strftime("%m-%d-%Y_%H:%M:%S")
         filename = filename + ".png"
@@ -174,6 +173,10 @@ def error(msg):
 
 def info(msg):
     print(f"{Fore.GREEN}INFO:{Style.RESET_ALL} {msg}", file=sys.stderr)
+
+def load(curr,total):
+    perc = round(curr/total*100)
+    print(f"{Fore.GREEN}LOADING:{Style.RESET_ALL} {perc}%", file=sys.stderr, end='\r')
 
 def warn(msg):
     print(f"{Fore.RED}WARNING:{Style.RESET_ALL} {msg}", file=sys.stderr)
