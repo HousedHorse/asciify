@@ -24,15 +24,29 @@ it and installing dependencies will be **much different** than what is shown her
 
 ## Usage
 
-Supply the image name, with extension, as a command line argument.
-If you supply an image name without an extension, it will assume the
+Supply a command followed by the image name, with extension, as a command line argument.
+If you supply an image name without an extension, the program will assume the
 image is in `.png` format.
+
+### ASCII Text
 
 By default, the program prints to `stdout`. In order to capture your
 output in a `.txt` file, run the program using output redirection as follows:
 
-`$ asciify my_image.png > output.txt`
+`$ asciify txt my_image.png > output.txt`
 
 Optionally, you can supply a maximum width and a maximum height as follows:
 
-`$ asciify my_image.png 128 128 > output.txt` produces a maximum size 128x128 version of the ASCII art.
+`$ asciify txt my_image.png 128 128 > output.txt` produces a maximum size 128x128 character version of the ASCII art.
+
+### ASCII Images
+
+The program will generate ASCII text from the original image file and then save it as a PNG.
+
+`$ asciify img my_image.png`
+
+Optionally, you can supply a maximum width and a maximum height as follows:
+
+`$ asciify img my_image.png 128 128` produces a maximum size 128x128 character version of the ASCII art image.
+
+Note that the dimensions of the actual image produced will be larger.
