@@ -41,10 +41,10 @@ class Generator:
         self.img = self.img.convert('L')
 
     def resize(self):
+        self.img.thumbnail((128,128))
         w = round(self.img.width*2)
         h = round(self.img.height)
         self.img = self.img.resize((w,h))
-        #self.img.thumbnail((128,128))
 
     # static member function to convert a value to an ascii character
     def toChar(value):
