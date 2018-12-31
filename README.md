@@ -2,6 +2,16 @@
 
 By: William "HousedHorse" Findlay
 
+## Important
+
+This program produces large amounts of text in order to keep the resolution nice.
+
+That means **if you want to view your picture you need to use a very small font**.
+In a terminal, I recommend zooming way out if your terminal supports doing so.
+In a word processor, use a **monospaced font** and set the **font size to around 2-6**.
+
+In the future, I may add the option to change output sizes.
+
 ## Dependencies
 
 All libraries are installed with the makefile. If the makefile doesn't work,
