@@ -2,8 +2,6 @@
 
 By: William "HousedHorse" Findlay
 
----
-
 ## Dependencies
 
 All libraries are installed with the makefile. If the makefile doesn't work,
