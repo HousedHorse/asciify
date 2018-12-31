@@ -91,10 +91,10 @@ def parseArgs():
         displayUsage()
     try: outw = int(sys.argv[2].strip())
     except:
-        outw = None
+        outw = 128
     try: outh = int(sys.argv[3].strip())
     except:
-        outh = None
+        outh = 128
     return imgName, outw, outh
 
 def main():
