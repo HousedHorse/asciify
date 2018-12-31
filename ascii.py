@@ -60,7 +60,7 @@ class Generator:
         if value > 255: value = 255
         if value < 0: value = 0
         # list is from light to dark but must be read dark to light
-        chars = [x for x in reversed([' ','.',',',':',';','I','L','O','Q','B','M','@','#'])]
+        chars = [x for x in reversed([' ','.',',',':',';','I','L','O','Q','B','M','#','@'])]
         key = round(value * (len(chars)-1) / 255)
         return chars[key]
 
