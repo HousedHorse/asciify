@@ -11,6 +11,10 @@ install them manually with `pip`.
 - libraries (installed via makefile)
   - Pillow
   - colorama
+  
+**Windows Users:** This program is meant to be run on UNIX-like operating systems.
+If you're on Windows you should still be able to run it, but the process of running
+it and installing dependencies will be **much different** than what is shown here.
 
 ## Installation
 
@@ -31,4 +35,4 @@ output in a `.txt` file, run the program using output redirection as follows:
 
 Optionally, you can supply a maximum width and a maximum height as follows:
 
-`$ asciify my_image.png 128 128 > output.txt` produces a 128x128 version of the ASCII art.
+`$ asciify my_image.png 128 128 > output.txt` produces a maximum size 128x128 version of the ASCII art.
