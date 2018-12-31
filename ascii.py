@@ -5,7 +5,16 @@ import re
 from colorama import Fore, Back, Style 
 
 class Generator:
-    def __init__(self,imgName):
+    def __init__(self,imgName,outw=None,outh=None):
+        if outh is not None:
+            self.outw = outw
+        else:
+            self.outw = 128
+        if outw is not None:
+            self.outh = outh
+        else:
+            self.outh = 128
+
         # matches file extension
         match = re.search(r"\.([^\.]*)$",imgName)
         try:
@@ -41,7 +50,7 @@ class Generator:
         self.img = self.img.convert('L')
 
     def resize(self):
-        self.img.thumbnail((128,128))
+        self.img.thumbnail((round(self.outw/2),self.outh))
         w = round(self.img.width*2)
         h = round(self.img.height)
         self.img = self.img.resize((w,h))
@@ -68,7 +77,7 @@ class Generator:
         return s
 
 def displayUsage():
-    print(f"{Fore.RED}Usage: asciify <image_name>{Style.RESET_ALL}", file=sys.stderr)
+    print(f"{Fore.RED}Usage: asciify <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
     print(          f"       If you do not supply an extension, {Fore.RED}.png{Style.RESET_ALL} will be assumed.", file=sys.stderr)
     exit(-1)
 
@@ -80,12 +89,18 @@ def parseArgs():
     try: imgName = sys.argv[1].strip()
     except:
         displayUsage()
-    return imgName
+    try: outw = int(sys.argv[2].strip())
+    except:
+        outw = None
+    try: outh = int(sys.argv[3].strip())
+    except:
+        outh = None
+    return imgName, outw, outh
 
 def main():
-    imgName = parseArgs()
+    imgName,outw,outh = parseArgs()
 
-    g = Generator(imgName)
+    g = Generator(imgName,outw,outh)
     print(g.generate())
 
     exit(1)

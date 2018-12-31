@@ -2,16 +2,6 @@
 
 By: William "HousedHorse" Findlay
 
-## Important
-
-This program produces large amounts of text in order to keep the resolution nice.
-
-That means **if you want to view your picture you need to use a very small font**.
-In a terminal, I recommend zooming way out if your terminal supports doing so.
-In a word processor, use a **monospaced font** and set the **font size to around 2-6**.
-
-In the future, I may add the option to change output sizes.
-
 ## Dependencies
 
 All libraries are installed with the makefile. If the makefile doesn't work,
@@ -38,3 +28,7 @@ By default, the program prints to `stdout`. In order to capture your
 output in a `.txt` file, run the program using output redirection as follows:
 
 `$ asciify my_image.png > output.txt`
+
+Optionally, you can supply a maximum width and a maximum height as follows:
+
+`$ asciify my_image.png 128 128 > output.txt` produces a 128x128 version of the ASCII art.
