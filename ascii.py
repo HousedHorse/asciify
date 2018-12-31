@@ -19,8 +19,8 @@ class Generator:
         return img
 
     def resize(img,outw,outh):
-        img.thumbnail((round(outw/2),outh))
-        w = round(img.width*2)
+        img.thumbnail((round(outw/2.5),outh))
+        w = round(img.width*2.5)
         h = round(img.height)
         img = img.resize((w,h))
         return img
@@ -83,6 +83,7 @@ class Generator:
             load(i,len(data))
             s += Generator.toChar(p)
             if (i+1) % w == 0: s += '\n'
+        flush()
         return s
 
     def generateASCIIImage(imgName,outw=None,outh=None,font=None):
@@ -118,6 +119,7 @@ class Generator:
             load(texty,height)
             d.text((0,texty), line, font=font, fill=(0,0,0))
             texty += lineheight
+        flush()
 
         filename = time.strftime("%m-%d-%Y_%H:%M:%S")
         filename = filename + ".png"
@@ -173,6 +175,9 @@ def error(msg):
 
 def info(msg):
     print(f"{Fore.GREEN}INFO:{Style.RESET_ALL} {msg}", file=sys.stderr)
+
+def flush():
+    print("", file=sys.stderr)
 
 def load(curr,total):
     perc = round(curr/total*100)
