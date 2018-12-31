@@ -80,7 +80,7 @@ class Generator:
         s = ''
         for i,p in enumerate(data):
             s += Generator.toChar(p)
-            if (i+1) % w == 0: s += '\n\r'
+            if (i+1) % w == 0: s += '\n'
         return s
 
     def generateASCIIImage(imgName,outw=None,outh=None,font=None):
@@ -99,7 +99,6 @@ class Generator:
 
         # get ascii for the frame
         s = Generator.generateASCII(imgName,outw,outh)
-        s = s.replace('\r','')
         lines = s.splitlines()
 
         # figure out width and height of the image
@@ -139,7 +138,6 @@ class Generator:
 
         # get ascii for the frame
         s = Generator.generateASCII(gifName,outw,outh)
-        s = s.replace('\r','')
         lines = s.splitlines()
 
         # figure out width and height of the image
