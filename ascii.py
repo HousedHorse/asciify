@@ -242,7 +242,7 @@ def main():
         filename = filename + ".gif"
         info(f'Saving image as {filename}')
         gif = output[0]
-        gif.save(filename, save_all=True, append_images=output[1:])
+        gif.save(filename, save_all=True, append_images=output[1:], loop=0)
         info('Done.')
     else:
         displayUsage()
