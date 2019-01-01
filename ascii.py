@@ -29,7 +29,7 @@ class Generator:
         if value > 255: value = 255
         if value < 0: value = 0
         # list is from light to dark but must be read dark to light
-        chars = [x for x in reversed(['⠀','⠀','.',',',':',';','*','I','L','O','Q','B','M','#','#'])]
+        chars = ['Q', 'W', 'N', 'M', 'B', '#', 'R', 'g', '@', 'H', '0', 'D', '8', 'K', '&', '%', 'O', 'm', '$', 'q', 'd', 'p', 'U', 'b', 'X', 'E', '6', '9', 'G', 'P', 'k', 'h', '5', 'S', 'Z', 'w', 'A', 'V', '4', '2', 'y', '3', 'a', 'C', 'Y', 'F', 'e', 'I', '{', '}', 'u', 'n', '[', ']', 'j', 'o', 'f', 'z', 'l', 'J', 'T', 's', 'x', 'L', '7', 't', '|', 'v', 'c', 'i', '(', '?', ')', '1', '*', 'r', '=', '>', '<', '/', '\\', '+', '!', '"', '~', '^', '_', ';', '-', ',', "'", '`', ':', '.', ' ', ' ', ' ']
         key = round(value * (len(chars)-1) / 255)
         return chars[key]
 
@@ -111,7 +111,7 @@ class Generator:
         height = lineheight * len(lines)
 
         # draw the output
-        info('Drawing image...')
+        info('Rendering image...')
         output = Image.new('RGB',(width,height), color=(255,255,255))
         d = ImageDraw.Draw(output)
         texty = 0
