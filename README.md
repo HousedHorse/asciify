@@ -51,7 +51,7 @@ Optionally, you can supply a maximum width and a maximum height as follows:
 
 Note that the dimensions of the actual image produced will be larger.
 
-## ASCII GIFs
+### ASCII GIFs
 
 Just give it a `GIF` file and supply the `gif` command.
 
@@ -63,3 +63,7 @@ Optionally, you can supply a maximum width and a maximum height as follows:
 
 **This command will take a very long time as it essentially performs the ASCII Image operation on EACH FRAME.**
 Please be patient and it is advised not to make the size too large.
+
+### Color Images and GIFs
+
+You can export as color ASCII art images and GIFs using the commands `cimg` and `cgif` respectively.

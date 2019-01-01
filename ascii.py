@@ -124,8 +124,46 @@ class Generator:
 
         return output
 
-    def generateASCIIFrame(frame,outw=None,outh=None,font=None):
-        info('Generating ASCII image...')
+    def generateASCIIColor(imgName,outw=None,outh=None,img=None):
+        info('Generating ASCII color text...')
+        if outw is None:
+            outw = 128
+        if outh is None:
+            outh = outw
+
+        if img is None:
+            info('Opening sourcefile...')
+            img = Generator.openInput(imgName)
+
+        img = Generator.removeTransparency(img)
+        info('Resizing image...')
+        img = Generator.resize(img,outw,outh)
+        info('Converting image to grayscale...')
+        gray = Generator.convertToGrayscale(img)
+        # resize the image to compensate for ascii being taller than it is wide
+        # flattened array of grayscale values for each pixel
+        data = gray.getdata()
+        color = img.getdata()
+        w = img.width
+        h = img.height
+        # iterate through it and generate ascii
+        info('Assigning ASCII to pixels...')
+        s = ''
+        for i,p in enumerate(data):
+            load(i,len(data))
+            s += Generator.toChar(p)
+            if (i+1) % w == 0: s += '\n'
+        flush()
+        info('Assigning color to ASCII characters...')
+        colors = []
+        for i,p in enumerate(color):
+            load(i,len(color))
+            colors.append(p)
+        flush()
+        return s,colors
+
+    def generateASCIIColorImage(imgName,outw=None,outh=None,font=None):
+        info('Generating ASCII color image...')
         if outw is None:
             outw = 400
         if outh is None:
@@ -133,6 +171,46 @@ class Generator:
 
         if outw >= 5000 or outh >= 5000:
             warn('You specified a pretty large maximum width or height. The resulting PNG will be quite large. If this was a mistake, press <CTRL-C> to cancel.')
+
+        # load the font
+        if font is None:
+            #font = ImageFont.load_default()
+            font = ImageFont.truetype(font=f'/usr/share/fonts/inconsolata.otf')
+
+        # get ascii for the frame
+        s,color = Generator.generateASCIIColor(imgName,outw,outh)
+        lines = s.splitlines()
+
+        # figure out width and height of the image
+        info('Gathering meta-data...')
+        width,lineheight = font.getsize(lines[0])
+        height = lineheight * len(lines)
+
+        # draw the output
+        info('Rendering image...')
+        output = Image.new('RGB',(width,height), color=(255,255,255))
+        d = ImageDraw.Draw(output)
+        texty = 0
+        i = 0
+        for line in lines:
+            textx = 0
+            for c in line:
+                load(i,len(lines)*len(lines[0]))
+                cw,ch = font.getsize('X')
+                d.text((textx,texty), c, font=font, fill=color[i])
+                i += 1
+                textx += cw
+            texty += lineheight
+        flush()
+
+        return output
+
+    def generateASCIIFrame(frame,outw=None,outh=None,font=None):
+        info('Generating ASCII image...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
 
         # load the font
         if font is None:
@@ -168,6 +246,9 @@ class Generator:
         if outh is None:
             outh = outw
 
+        if outw >= 1000 or outh >= 1000:
+            warn('You specified a pretty large maximum width or height. The resulting GIF will be quite large. If this was a mistake, press <CTRL-C> to cancel.')
+
         info('Opening sourcefile...')
         gif = Generator.openInput(gifName)
 
@@ -181,6 +262,71 @@ class Generator:
 
         return output
 
+    def generateASCIIColorFrame(frame,outw=None,outh=None,font=None):
+        info('Generating ASCII color image...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
+
+        # load the font
+        if font is None:
+            #font = ImageFont.load_default()
+            font = ImageFont.truetype(font=f'/usr/share/fonts/inconsolata.otf')
+
+        # get ascii for the frame
+        s,color = Generator.generateASCIIColor(None,outw,outh,img=frame)
+        lines = s.splitlines()
+
+        # figure out width and height of the image
+        info('Gathering meta-data...')
+        width,lineheight = font.getsize(lines[0])
+        height = lineheight * len(lines)
+
+        # draw the output
+        info('Rendering image...')
+        output = Image.new('RGB',(width,height), color=(255,255,255))
+        d = ImageDraw.Draw(output)
+        texty = 0
+        i = 0
+        for line in lines:
+            textx = 0
+            for c in line:
+                load(i,len(lines)*len(lines[0]))
+                cw,ch = font.getsize('X')
+                d.text((textx,texty), c, font=font, fill=color[i])
+                i += 1
+                textx += cw
+            texty += lineheight
+        flush()
+
+        return output
+
+
+    def generateASCIIColorGIF(gifName,outw=None,outh=None,font=None):
+        info('Generating ASCII GIF (this may take some time)...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
+
+        if outw >= 1000 or outh >= 1000:
+            warn('You specified a pretty large maximum width or height. The resulting GIF will be quite large. If this was a mistake, press <CTRL-C> to cancel.')
+
+        info('Opening sourcefile...')
+        gif = Generator.openInput(gifName)
+
+        output = []
+        try:
+            while True:
+                gif.seek(gif.tell()+1)
+                output.append(Generator.generateASCIIColorFrame(gif,outw,outh))
+        except EOFError:
+            pass
+
+        return output
+
+
 def displayUsage():
     print(f"{Fore.RED}Usage: asciify <COMMAND> <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
     print(          f"       If you do not supply an extension for <image_name>, {Fore.RED}.png{Style.RESET_ALL} will be assumed.", file=sys.stderr)
@@ -188,7 +334,9 @@ def displayUsage():
     print(f"{Fore.RED}Commands:{Style.RESET_ALL}",file=sys.stderr)
     print(f"{Fore.RED}         ascii, text, txt:{Style.RESET_ALL} convert an image to ASCII and output to stdout",file=sys.stderr)
     print(f"{Fore.RED}               image, img:{Style.RESET_ALL} convert an image to ASCII and output that ASCII as a PNG",file=sys.stderr)
+    print(f"{Fore.RED}         colorimage, cimg:{Style.RESET_ALL} convert an image to color ASCII and output that color ASCII as a PNG",file=sys.stderr)
     print(f"{Fore.RED}                      gif:{Style.RESET_ALL} convert a GIF to ASCII and output that ASCII as a GIF",file=sys.stderr)
+    print(f"{Fore.RED}           colorgif, cgif:{Style.RESET_ALL} convert a GIF to color ASCII and output that color ASCII as a GIF",file=sys.stderr)
     exit(-1)
 
 def error(msg):
@@ -233,11 +381,26 @@ def main():
         info(f'Saving image as {filename}')
         output.save(filename)
         info('Done.')
+    elif command.lower() in ['colorimage','cimg']:
+        output = Generator.generateASCIIColorImage(imgName,outw,outh)
+        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
+        filename = filename + ".png"
+        info(f'Saving image as {filename}')
+        output.save(filename)
+        info('Done.')
     elif command.lower() in ['ascii','text','txt']:
         print(Generator.generateASCII(imgName,outw,outh))
         info('Done.')
     elif command.lower() in ['gif']:
         output = Generator.generateASCIIGIF(imgName,outw,outh)
+        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
+        filename = filename + ".gif"
+        info(f'Saving image as {filename}')
+        gif = output[0]
+        gif.save(filename, save_all=True, append_images=output[1:], loop=0)
+        info('Done.')
+    elif command.lower() in ['colorgif','cgif']:
+        output = Generator.generateASCIIColorGIF(imgName,outw,outh)
         filename = time.strftime("%m-%d-%Y_%H:%M:%S")
         filename = filename + ".gif"
         info(f'Saving image as {filename}')
