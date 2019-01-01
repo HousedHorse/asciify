@@ -29,7 +29,7 @@ class Generator:
         if value > 255: value = 255
         if value < 0: value = 0
         # list is from light to dark but must be read dark to light
-        chars = [x for x in reversed([' ',' ','.',',',':',';','*','I','L','O','Q','B','M','#','#'])]
+        chars = [x for x in reversed(['⠀','⠀','.',',',':',';','*','I','L','O','Q','B','M','#','#'])]
         key = round(value * (len(chars)-1) / 255)
         return chars[key]
 
@@ -163,10 +163,10 @@ def displayUsage():
     print(f"{Fore.RED}Usage: asciify <COMMAND> <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
     print(          f"       If you do not supply an extension for <image_name>, {Fore.RED}.png{Style.RESET_ALL} will be assumed.", file=sys.stderr)
     print()
-    print(f"{Fore.RED}Commands:{Style.RESET_ALL}")
-    print(f"{Fore.RED}         ascii, text, txt:{Style.RESET_ALL} convert an image to ASCII and output to stdout")
-    print(f"{Fore.RED}               image, img:{Style.RESET_ALL} convert an image to ASCII and output that ASCII as a PNG")
-    print(f"{Fore.RED}                      gif:{Style.RESET_ALL} convert a GIF to ASCII and output that ASCII as a GIF")
+    print(f"{Fore.RED}Commands:{Style.RESET_ALL}",file=sys.stderr)
+    print(f"{Fore.RED}         ascii, text, txt:{Style.RESET_ALL} convert an image to ASCII and output to stdout",file=sys.stderr)
+    print(f"{Fore.RED}               image, img:{Style.RESET_ALL} convert an image to ASCII and output that ASCII as a PNG",file=sys.stderr)
+    print(f"{Fore.RED}                      gif:{Style.RESET_ALL} convert a GIF to ASCII and output that ASCII as a GIF",file=sys.stderr)
     exit(-1)
 
 def error(msg):
