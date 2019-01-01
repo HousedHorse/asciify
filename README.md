@@ -50,3 +50,16 @@ Optionally, you can supply a maximum width and a maximum height as follows:
 `$ asciify img my_image.png 128 128` produces a maximum size 128x128 character version of the ASCII art image.
 
 Note that the dimensions of the actual image produced will be larger.
+
+## ASCII GIFs
+
+Just give it a `GIF` file and supply the `gif` command.
+
+`$ asciify gif my_gif.gif`
+
+Optionally, you can supply a maximum width and a maximum height as follows:
+
+`$ asciify gif my_gif.gif 128 128` produces a maximum size 128x128 character version of the ASCII art GIF.
+
+**This command will take a very long time as it essentially performs the ASCII Image operation on EACH FRAME.**
+Please be patient and it is advised not to make the size too large.
