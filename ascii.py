@@ -56,15 +56,16 @@ class Generator:
 
         return f
 
-    def generateASCII(imgName,outw=None,outh=None):
+    def generateASCII(imgName,outw=None,outh=None,img=None):
         info('Generating ASCII text...')
         if outw is None:
             outw = 128
         if outh is None:
             outh = outw
 
-        info('Opening sourcefile...')
-        img = Generator.openInput(imgName)
+        if img is None:
+            info('Opening sourcefile...')
+            img = Generator.openInput(imgName)
 
         info('Converting image to grayscale...')
         img = Generator.removeTransparency(img)
@@ -121,10 +122,44 @@ class Generator:
             texty += lineheight
         flush()
 
-        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
-        filename = filename + ".png"
-        info(f'Saving image as {filename}')
-        output.save(filename)
+        return output
+
+    def generateASCIIFrame(frame,outw=None,outh=None,font=None):
+        info('Generating ASCII image...')
+        if outw is None:
+            outw = 400
+        if outh is None:
+            outh = outw
+
+        if outw >= 5000 or outh >= 5000:
+            warn('You specified a pretty large maximum width or height. The resulting PNG will be quite large. If this was a mistake, press <CTRL-C> to cancel.')
+
+        # load the font
+        if font is None:
+            #font = ImageFont.load_default()
+            font = ImageFont.truetype(font=f'/usr/share/fonts/inconsolata.otf')
+
+        # get ascii for the frame
+        s = Generator.generateASCII(None,outw,outh,img=frame)
+        lines = s.splitlines()
+
+        # figure out width and height of the image
+        info('Gathering meta-data...')
+        width,lineheight = font.getsize(lines[0])
+        height = lineheight * len(lines)
+
+        # draw the output
+        info('Rendering image...')
+        output = Image.new('RGB',(width,height), color=(255,255,255))
+        d = ImageDraw.Draw(output)
+        texty = 0
+        for line in lines:
+            load(texty,height)
+            d.text((0,texty), line, font=font, fill=(0,0,0))
+            texty += lineheight
+        flush()
+
+        return output
 
     def generateASCIIGIF(gifName,outw=None,outh=None,font=None):
         info('Generating ASCII GIF (this may take some time)...')
@@ -133,31 +168,18 @@ class Generator:
         if outh is None:
             outh = outw
 
-        # load the font
-        if font is None:
-            font = ImageFont.load_default()
+        info('Opening sourcefile...')
+        gif = Generator.openInput(gifName)
 
-        # get ascii for the frame
-        s = Generator.generateASCII(gifName,outw,outh)
-        lines = s.splitlines()
+        output = []
+        try:
+            while True:
+                gif.seek(gif.tell()+1)
+                output.append(Generator.generateASCIIFrame(gif,outw,outh))
+        except EOFError:
+            pass
 
-        # figure out width and height of the image
-        width = 0
-        height = 0
-        for line in lines:
-            w,h = font.getsize(line)
-            if w > width: width = w
-            height += h
-
-        # draw the frame
-        frame = Image.new('RGB',(width,height), color=(255,255,255))
-        d = ImageDraw.Draw(frame)
-        texty = 0
-        for line in lines:
-            w,h = font.getsize(line)
-            d.text((0,texty), line, fill=(0,0,0))
-            texty += h
-        frame.save('frame.png')
+        return output
 
 def displayUsage():
     print(f"{Fore.RED}Usage: asciify <COMMAND> <image_name> [max_output_width] [max_output_height]{Style.RESET_ALL}", file=sys.stderr)
@@ -205,15 +227,23 @@ def main():
     command,imgName,outw,outh = parseArgs()
 
     if command.lower() in ['image','img']:
-        Generator.generateASCIIImage(imgName,outw,outh)
+        output = Generator.generateASCIIImage(imgName,outw,outh)
+        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
+        filename = filename + ".png"
+        info(f'Saving image as {filename}')
+        output.save(filename)
         info('Done.')
     elif command.lower() in ['ascii','text','txt']:
         print(Generator.generateASCII(imgName,outw,outh))
         info('Done.')
     elif command.lower() in ['gif']:
-        error('Feature not yet implemented!!')
-        #Generator.generateASCIIGIF(imgName,outw,outh)
-        #info('Done.')
+        output = Generator.generateASCIIGIF(imgName,outw,outh)
+        filename = time.strftime("%m-%d-%Y_%H:%M:%S")
+        filename = filename + ".gif"
+        info(f'Saving image as {filename}')
+        gif = output[0]
+        gif.save(filename, save_all=True, append_images=output[1:])
+        info('Done.')
     else:
         displayUsage()
 
